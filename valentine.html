@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Will You Be My Valentine? 💖</title>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        75%,
+        100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .animate-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+      .animate-bounce {
+        animation: bounce 1s infinite;
+      }
+      .animate-ping {
+        animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      /* Base Styles */
+      * {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Responsive Image Handling */
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      /* Mobile Optimizations */
+      @media (max-width: 640px) {
+        .mobile-text-sm {
+          font-size: 0.875rem;
+        }
+        .mobile-p-4 {
+          padding: 1rem;
+        }
+        .mobile-gap-4 {
+          gap: 1rem;
+        }
+      }
+
+      /* Tablet Optimizations */
+      @media (min-width: 641px) and (max-width: 1024px) {
+        .tablet-text-md {
+          font-size: 1rem;
+        }
+      }
+
+      /* Ensure buttons are touch-friendly on mobile */
+      button {
+        min-height: 44px;
+        min-width: 44px;
+        touch-action: manipulation;
+      }
+
+      /* Prevent text selection during interaction */
+      .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      /* Safe area for notched devices (iPhone X+) */
+      @supports (padding: env(safe-area-inset-top)) {
+        body {
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useCallback } = React;
+
+      // Lucide React Icons as SVG components
+      const Heart = ({ size = 24, fill = "none", className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill={fill}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
+      );
+
+      const Mail = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <rect width="20" height="16" x="2" y="4" rx="2" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+      );
+
+      const MapPin = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      );
+
+      const Calendar = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+          <line x1="16" x2="16" y1="2" y2="6" />
+          <line x1="8" x2="8" y1="2" y2="6" />
+          <line x1="3" x2="21" y1="10" y2="10" />
+        </svg>
+      );
+
+      const Clock = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      );
+
+      const Sparkles = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+          <path d="M5 3v4" />
+          <path d="M19 17v4" />
+          <path d="M3 5h4" />
+          <path d="M17 19h4" />
+        </svg>
+      );
+
+      const Utensils = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+          <path d="M7 2v20" />
+          <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+        </svg>
+      );
+
+      const Bike = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <circle cx="18.5" cy="17.5" r="3.5" />
+          <circle cx="5.5" cy="17.5" r="3.5" />
+          <circle cx="15" cy="5" r="1" />
+          <path d="M12 17.5V14l-3-3 4-3 2 3h2" />
+        </svg>
+      );
+
+      const Music = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <path d="M9 18V5l12-2v13" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="18" cy="16" r="3" />
+        </svg>
+      );
+
+      const Camera = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+          <circle cx="12" cy="13" r="3" />
+        </svg>
+      );
+
+      const PartyPopper = ({ size = 24, className = "" }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          <path d="M5.8 11.3 2 22l10.7-3.79" />
+          <path d="M4 3h.01" />
+          <path d="M22 8h.01" />
+          <path d="M15 2h.01" />
+          <path d="M22 20h.01" />
+          <path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12v0c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10" />
+          <path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11v0c-.11.7-.72 1.22-1.43 1.22H17" />
+          <path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98v0C9.52 4.9 9 5.52 9 6.23V7" />
+          <path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z" />
+        </svg>
+      );
+
+      const App = () => {
+        const [currentScreen, setCurrentScreen] = useState("intro");
+        const [envelopeOpen, setEnvelopeOpen] = useState(false);
+        const [noButtonPos, setNoButtonPos] = useState({
+          top: "auto",
+          left: "auto",
+          position: "relative",
+          zIndex: 30,
+        });
+        const [yesScale, setYesScale] = useState(1);
+        const [noCount, setNoCount] = useState(0);
+
+        const noPhrases = [
+          "No",
+          "Sure uy?",
+          "Sure na jud?",
+          "please hehe",
+          "Like Legit??",
+          "Pwede favor?",
+          "aaahh magmahay jud ka",
+          "Pleeaasee sge na",
+          "Final najud??",
+          "i-think balik hehe",
+          "babbyyy sge naaaa :<",
+          "aaah kalain",
+          "maluoy ka please",
+          "aah bala ka",
+          "sakit mo sa heart :<",
+        ];
+
+        // Local GIFs from the gifs folder for the meme images
+        const memeImages = [
+          "gifs/giphy (1).gif",
+          "gifs/banana-cat-cat-banana.gif",
+          "gifs/banana-cat-crying-banana-cat.gif",
+          "gifs/giphy.gif",
+          "gifs/i-love-you-binh.gif",
+          "gifs/jake-crying.gif",
+          "gifs/long-tears.gif",
+          "gifs/puppy-dog-eyes-sad.gif",
+          "gifs/tenor.gif",
+          "gifs/tenor (1).gif",
+          "gifs/ааааа-голова-болит.gif",
+          "gifs/babae-umiiyak-pinoy-reaction.gif",
+        ];
+
+        const handleNoClick = useCallback(() => {
+          setNoCount((prev) => prev + 1);
+          setYesScale((prev) => prev + 0.15);
+
+          // Approximate button size
+          const buttonWidth = 140;
+          const buttonHeight = 52;
+
+          // Padding from viewport edges to keep it always visible
+          const padding = 24;
+
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+
+          // Compute safe widths/heights, never negative
+          const safeWidth = Math.max(
+            viewportWidth - buttonWidth - padding * 2,
+            0,
+          );
+          const safeHeight = Math.max(
+            viewportHeight - buttonHeight - padding * 2,
+            0,
+          );
+
+          const randomLeft = padding + Math.random() * safeWidth;
+          const randomTop = padding + Math.random() * safeHeight;
+
+          setNoButtonPos({
+            position: "fixed",
+            top: `${randomTop}px`,
+            left: `${randomLeft}px`,
+            transition: "all 0.3s ease-out",
+            zIndex: 30,
+          });
+        }, []);
+
+        const handleYesClick = () => {
+          setCurrentScreen("letter");
+        };
+
+        const handleStartClick = () => {
+          setCurrentScreen("question");
+        };
+
+        const handleOpenEnvelope = () => {
+          setEnvelopeOpen(true);
+        };
+
+        const handleContinueToDetails = () => {
+          setCurrentScreen("success");
+        };
+
+        const renderIntro = () => (
+          <div className="relative z-10 bg-white/80 backdrop-blur-md p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl border-2 border-rose-100 max-w-2xl w-full mx-4 text-center transition-all duration-500 animate-in">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-rose-600 mb-6 sm:mb-8 leading-tight px-2">
+              Hi, Lay! <br /> I want to ask something... 🤭
+            </h1>
+            <button
+              onClick={handleStartClick}
+              className="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 sm:py-4 px-8 sm:px-10 rounded-full shadow-lg transition-all duration-200 transform active:scale-95 text-lg sm:text-xl"
+            >
+              What is it? 🤔
+            </button>
+          </div>
+        );
+
+        const renderQuestion = () => (
+          <div className="relative z-10 bg-white/80 backdrop-blur-md p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl border-2 border-rose-100 max-w-2xl w-full mx-4 text-center transition-all duration-500 animate-in">
+            <div className="mb-6 flex justify-center">
+              <div className="relative">
+                <img
+                  src={memeImages[Math.min(noCount, memeImages.length - 1)]}
+                  alt="Valentine Mascot"
+                  className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover rounded-full border-4 border-rose-300 shadow-lg"
+                />
+                <div className="absolute -top-2 -right-2 bg-white rounded-full p-2 shadow-md">
+                  <Heart
+                    size={20}
+                    fill="#f43f5e"
+                    className="text-rose-500 sm:w-6 sm:h-6"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-rose-600 mb-6 sm:mb-8 leading-tight px-2">
+              Will you be my Valentine?
+            </h1>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mt-4 relative min-h-[100px]">
+              <button
+                onClick={handleYesClick}
+                style={{ transform: `scale(${yesScale})` }}
+                className="z-20 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 sm:py-4 px-8 sm:px-10 rounded-full shadow-lg transition-all duration-200 transform active:scale-95 origin-center text-base sm:text-lg"
+              >
+                Yes!
+              </button>
+
+              <button
+                onClick={handleNoClick}
+                style={{
+                  ...noButtonPos,
+                  display: "block",
+                  visibility: "visible",
+                }}
+                className="no-button bg-gray-100 text-gray-600 font-semibold py-3 px-6 sm:px-8 rounded-full border border-gray-200 hover:bg-gray-200 active:bg-gray-300 whitespace-nowrap text-sm sm:text-base"
+              >
+                {noPhrases[Math.min(noCount, noPhrases.length - 1)]}
+              </button>
+            </div>
+
+            {noCount > 0 && (
+              <p className="mt-6 sm:mt-8 text-rose-400 font-medium animate-bounce italic text-sm sm:text-base px-4">
+                You actually tried to click it! 😲 Try again!
+              </p>
+            )}
+          </div>
+        );
+
+        const renderLetter = () => (
+          <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-4 animate-in">
+            <div className="flex flex-col items-center mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-rose-600 mb-3 sm:mb-4 text-center px-2">
+                I know mag-yes jud ka hehe 💕
+              </h2>
+              {/* Celebration GIF shown right after clicking "Yes" */}
+              <img
+                src="gifs/yay-kitty.gif"
+                alt="Yay! Kitty celebrating"
+                className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover rounded-3xl border-4 border-rose-300 shadow-lg"
+              />
+            </div>
+
+            <div className="relative w-full max-w-md">
+              <div
+                className={`relative bg-gradient-to-br from-rose-100 to-pink-200 rounded-lg shadow-2xl border-4 border-rose-300 transition-all duration-700 cursor-pointer overflow-visible ${
+                  envelopeOpen ? "transform -translate-y-4" : ""
+                }`}
+                onClick={!envelopeOpen ? handleOpenEnvelope : undefined}
+              >
+                {/* Letter Content - Higher z-index when open */}
+                <div
+                  className={`bg-white rounded-lg p-6 sm:p-8 m-4 shadow-lg transition-all duration-700 ${
+                    envelopeOpen
+                      ? "translate-y-0 opacity-100 relative z-20"
+                      : "translate-y-8 opacity-0 relative z-10"
+                  }`}
+                >
+                  <div className="flex justify-center mb-4">
+                    <Heart
+                      size={28}
+                      fill="#f43f5e"
+                      className="text-rose-500 sm:w-8 sm:h-8"
+                    />
+                  </div>
+
+                  <div className="space-y-3 sm:space-y-4 text-gray-700 font-medium leading-relaxed">
+                    <p className="text-center font-black text-rose-600 text-lg sm:text-xl mb-3 sm:mb-4">
+                      To my dearest Lay,
+                    </p>
+
+                    <p className="text-xs sm:text-sm md:text-base">
+                      From the moment I first saw your smile, I knew there was
+                      something special about you. Every conversation we share,
+                      every laugh we exchange, makes my heart flutter in ways I
+                      never thought possible.
+                    </p>
+
+                    <p className="text-xs sm:text-sm md:text-base">
+                      You bring light into my days and warmth into my heart.
+                      This Valentine's Day, I want to spend it creating
+                      beautiful memories with you.
+                    </p>
+
+                    <p className="text-xs sm:text-sm md:text-base">
+                      I've planned something special for us, and I can't wait to
+                      share this day with you. Thank you for saying yes! 💖
+                    </p>
+
+                    <p className="text-right font-black text-rose-600 mt-4 sm:mt-6">
+                      Forever yours,
+                      <br />
+                      <span className="text-xl sm:text-2xl">❤️</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Envelope Flap - hides once opened so it doesn't cover the text */}
+                <div
+                  className={`absolute top-0 left-0 right-0 h-24 sm:h-32 bg-gradient-to-br from-rose-200 to-pink-300 border-b-4 border-rose-300 transition-all duration-700 origin-top ${
+                    envelopeOpen
+                      ? "-translate-y-24 sm:-translate-y-32 opacity-0 pointer-events-none"
+                      : "z-10"
+                  }`}
+                  style={{
+                    clipPath: "polygon(0 0, 50% 100%, 100% 0)",
+                    transformStyle: "preserve-3d",
+                  }}
+                />
+
+                {/* Envelope Seal */}
+                {!envelopeOpen && (
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-rose-500 rounded-full p-2 sm:p-3 shadow-lg border-4 border-white z-20">
+                    <Mail size={20} className="text-white sm:w-6 sm:h-6" />
+                  </div>
+                )}
+              </div>
+
+              {!envelopeOpen && (
+                <p className="text-center mt-4 sm:mt-6 text-rose-400 font-medium animate-bounce text-sm sm:text-base">
+                  Click the envelope to open! ✉️
+                </p>
+              )}
+
+              {envelopeOpen && (
+                <div className="text-center mt-6 sm:mt-8 animate-in">
+                  <button
+                    onClick={handleContinueToDetails}
+                    className="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 sm:py-4 px-8 sm:px-10 rounded-full shadow-lg transition-all duration-200 transform active:scale-95 text-base sm:text-lg"
+                  >
+                    See our date details! 💕
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+        const renderSuccess = () => (
+          <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-4 animate-in my-4 sm:my-8">
+            <div className="w-full bg-white rounded-3xl sm:rounded-[3rem] shadow-2xl overflow-hidden border-4 sm:border-8 border-white relative">
+              <div className="bg-rose-500 p-6 sm:p-8 text-center text-white relative">
+                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 animate-bounce">
+                  <Heart fill="white" size={20} className="sm:w-6 sm:h-6" />
+                </div>
+                <div
+                  className="absolute top-2 sm:top-4 right-2 sm:right-4 animate-bounce"
+                  style={{ animationDelay: "75ms" }}
+                >
+                  <Heart fill="white" size={20} className="sm:w-6 sm:h-6" />
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 italic">
+                  It's a Date! 💖
+                </h1>
+                <p className="text-rose-100 font-medium text-sm sm:text-base">
+                  I'm so excited! Here are the details for us:
+                </p>
+              </div>
+
+              <div className="p-6 sm:p-8 md:p-10 space-y-6 sm:space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-center gap-3 sm:gap-4 text-gray-700">
+                      <div className="bg-rose-100 p-2 sm:p-3 rounded-2xl text-rose-500">
+                        <Utensils size={20} className="sm:w-6 sm:h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">
+                          What
+                        </p>
+                        <p className="font-bold text-base sm:text-lg">
+                          Picnic Date
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4 text-gray-700">
+                      <div className="bg-rose-100 p-2 sm:p-3 rounded-2xl text-rose-500">
+                        <MapPin size={20} className="sm:w-6 sm:h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">
+                          Where
+                        </p>
+                        <p className="font-bold text-base sm:text-lg">
+                          Lake Pinamaloy
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4 text-gray-700">
+                      <div className="bg-rose-100 p-2 sm:p-3 rounded-2xl text-rose-500">
+                        <Calendar size={20} className="sm:w-6 sm:h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">
+                          When
+                        </p>
+                        <p className="font-bold text-base sm:text-lg">
+                          February 14, 2026
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-center gap-3 sm:gap-4 text-gray-700">
+                      <div className="bg-rose-100 p-2 sm:p-3 rounded-2xl text-rose-500">
+                        <Clock size={20} className="sm:w-6 sm:h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">
+                          Time
+                        </p>
+                        <p className="font-bold text-base sm:text-lg">
+                          10:00 AM - 3:00 PM
+                        </p>
+                        <span className="text-[10px] text-rose-400 leading-none">
+                          (Negotiable!)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4 text-gray-700">
+                      <div className="bg-rose-100 p-2 sm:p-3 rounded-2xl text-rose-500">
+                        <Sparkles size={20} className="sm:w-6 sm:h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">
+                          Theme
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-base sm:text-lg">
+                            Pink & White
+                          </p>
+                          <span className="text-[10px] text-rose-400 leading-none">
+                            (Negotiable!)
+                          </span>
+                          <div className="flex gap-1">
+                            <div className="w-3 h-3 rounded-full bg-pink-400 border border-gray-100"></div>
+                            <div className="w-3 h-3 rounded-full bg-white border border-gray-200"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-rose-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-dashed border-rose-200">
+                  <p className="text-center font-black text-rose-500 mb-3 sm:mb-4 uppercase tracking-tighter text-sm sm:text-base">
+                    Our Itinerary
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
+                    <span className="bg-white px-3 sm:px-4 py-2 rounded-full shadow-sm text-gray-700 font-bold flex items-center gap-2 border border-rose-100 italic text-xs sm:text-sm">
+                      <Bike
+                        size={16}
+                        className="text-rose-400 sm:w-[18px] sm:h-[18px]"
+                      />{" "}
+                      Magbike
+                    </span>
+                    <span className="bg-white px-3 sm:px-4 py-2 rounded-full shadow-sm text-gray-700 font-bold flex items-center gap-2 border border-rose-100 italic text-xs sm:text-sm">
+                      <Utensils
+                        size={16}
+                        className="text-rose-400 sm:w-[18px] sm:h-[18px]"
+                      />{" "}
+                      Eat Good Food
+                    </span>
+                    <span className="bg-white px-3 sm:px-4 py-2 rounded-full shadow-sm text-gray-700 font-bold flex items-center gap-2 border border-rose-100 italic text-xs sm:text-sm">
+                      <Music
+                        size={16}
+                        className="text-rose-400 sm:w-[18px] sm:h-[18px]"
+                      />{" "}
+                      TikToks
+                    </span>
+                    <span className="bg-white px-3 sm:px-4 py-2 rounded-full shadow-sm text-gray-700 font-bold flex items-center gap-2 border border-rose-100 italic text-xs sm:text-sm">
+                      <Camera
+                        size={16}
+                        className="text-rose-400 sm:w-[18px] sm:h-[18px]"
+                      />{" "}
+                      Take Pictures
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <button
+                    onClick={() => window.print()}
+                    className="text-rose-300 hover:text-rose-500 text-xs sm:text-sm font-medium transition-colors"
+                  >
+                    Save these details 📸
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 sm:mt-8 flex gap-3 sm:gap-4">
+              <PartyPopper
+                size={28}
+                className="text-yellow-500 animate-bounce sm:w-8 sm:h-8"
+              />
+              <Heart
+                size={28}
+                className="text-rose-500 animate-ping sm:w-8 sm:h-8"
+              />
+              <Sparkles
+                size={28}
+                className="text-blue-400 animate-bounce sm:w-8 sm:h-8"
+              />
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="min-h-screen bg-rose-50 flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 overflow-x-hidden relative">
+            <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute animate-pulse text-rose-400"
+                  style={{
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    transform: `scale(${Math.random() * 2})`,
+                    animationDuration: `${Math.random() * 5 + 5}s`,
+                  }}
+                >
+                  <Heart size={16} fill="#f43f5e" className="sm:w-5 sm:h-5" />
+                </div>
+              ))}
+            </div>
+
+            {currentScreen === "intro" && renderIntro()}
+            {currentScreen === "question" && renderQuestion()}
+            {currentScreen === "letter" && renderLetter()}
+            {currentScreen === "success" && renderSuccess()}
+
+            <p className="mt-6 sm:mt-8 text-rose-300 text-xs sm:text-sm z-10 px-4 text-center">
+              Made with ❤️ for someone special
+            </p>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
