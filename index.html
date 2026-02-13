@@ -408,36 +408,52 @@
           setNoCount((prev) => prev + 1);
           setYesScale((prev) => prev + 0.15);
 
-          // Approximate button size
-          const buttonWidth = 140;
-          const buttonHeight = 52;
+          // Use setTimeout to ensure button is rendered before getting dimensions
+          setTimeout(() => {
+            const noButton = document.querySelector('.no-button');
+            const questionContainer = document.getElementById('question-container');
+            
+            if (!noButton || !questionContainer) return;
 
-          // Padding from viewport edges to keep it always visible
-          const padding = 24;
+            // Get container and button dimensions
+            const containerRect = questionContainer.getBoundingClientRect();
+            const buttonRect = noButton.getBoundingClientRect();
+            const buttonWidth = buttonRect.width;
+            const buttonHeight = buttonRect.height;
 
-          const viewportWidth = window.innerWidth;
-          const viewportHeight = window.innerHeight;
+            // Padding from container edges
+            const padding = 15;
 
-          // Compute safe widths/heights, never negative
-          const safeWidth = Math.max(
-            viewportWidth - buttonWidth - padding * 2,
-            0,
-          );
-          const safeHeight = Math.max(
-            viewportHeight - buttonHeight - padding * 2,
-            0,
-          );
+            // Calculate bounds relative to the container
+            const containerWidth = containerRect.width;
+            const containerHeight = containerRect.height;
 
-          const randomLeft = padding + Math.random() * safeWidth;
-          const randomTop = padding + Math.random() * safeHeight;
+            // Calculate maximum safe positions within container
+            const maxLeft = containerWidth - buttonWidth - padding;
+            const maxTop = containerHeight - buttonHeight - padding;
 
-          setNoButtonPos({
-            position: "fixed",
-            top: `${randomTop}px`,
-            left: `${randomLeft}px`,
-            transition: "all 0.3s ease-out",
-            zIndex: 30,
-          });
+            // Ensure we have valid bounds
+            const minLeft = padding;
+            const minTop = padding;
+
+            // Only calculate if we have valid space
+            if (maxLeft > minLeft && maxTop > minTop) {
+              const randomLeft = Math.random() * (maxLeft - minLeft) + minLeft;
+              const randomTop = Math.random() * (maxTop - minTop) + minTop;
+
+              // Clamp values to ensure they're within bounds
+              const clampedLeft = Math.max(minLeft, Math.min(maxLeft, randomLeft));
+              const clampedTop = Math.max(minTop, Math.min(maxTop, randomTop));
+
+              setNoButtonPos({
+                position: "absolute",
+                top: `${clampedTop}px`,
+                left: `${clampedLeft}px`,
+                transition: "all 0.3s ease-out",
+                zIndex: 30,
+              });
+            }
+          }, 0);
         }, []);
 
         const handleYesClick = () => {
@@ -471,7 +487,7 @@
         );
 
         const renderQuestion = () => (
-          <div className="relative z-10 bg-white/80 backdrop-blur-md p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl border-2 border-rose-100 max-w-2xl w-full mx-4 text-center transition-all duration-500 animate-in">
+          <div id="question-container" className="relative z-10 bg-white/80 backdrop-blur-md p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl border-2 border-rose-100 max-w-2xl w-full mx-4 text-center transition-all duration-500 animate-in">
             <div className="mb-6 flex justify-center">
               <div className="relative">
                 <img
@@ -493,7 +509,7 @@
               Will you be my Valentine?
             </h1>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mt-4 relative min-h-[100px]">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mt-4 min-h-[100px]">
               <button
                 onClick={handleYesClick}
                 style={{ transform: `scale(${yesScale})` }}
